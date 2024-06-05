@@ -19,7 +19,7 @@
 import {
   attach,
   detach,
-}           from 'frida-sidecar'
+}           from 'sidecar'
 
 import { WeChatSidecar } from './wechat-sidecar'
 
@@ -31,20 +31,21 @@ async function main () {
 
   console.log('WeChat Sidecar started.')
 
-  sidecar.on('recvMsg', async args => {
+  sidecar.on('hook', async args => {
     if (args instanceof Error) {
       console.error(args)
       return
     }
     console.log('recvMsg args:', args)
-    const talkerId  = args[0] as string
-    const text      = args[1] as string
+    const talkerId  = args.args['contactId'] as string
+    const text      = args.args['text'] as string
 
     /**
      * The world's famous ding-dong bot.
      */
     if (talkerId && text === 'ding') {
       await sidecar.sendMsg(talkerId, 'dong')
+      // talkerId, 'dong'
     }
 
   })

@@ -22,11 +22,10 @@ import {
   Call,
   Hook,
   ParamType,
-  RetType,
   Ret,
 
   agentTarget,
-}                 from 'frida-sidecar'
+}                 from 'sidecar'
 
 import fs from 'fs'
 
@@ -37,18 +36,21 @@ const initAgentScript = fs.readFileSync(require.resolve(
 @Sidecar('WeChat.exe', initAgentScript)
 class WeChatSidecar extends SidecarBody {
 
-  @Call(agentTarget('sendMsgNativeFunction'))
-  @RetType('void')
+  @Call(agentTarget('sendMsg'))
   sendMsg (
-    @ParamType('pointer', 'Utf16String') contactId: string,
-    @ParamType('pointer', 'Utf16String') text: string,
+    contactId: string,
+    text: string,
   ): Promise<string> { return Ret(contactId, text) }
 
   @Hook(agentTarget('recvMsgNativeCallback'))
   recvMsg (
+    @ParamType('int32', 'U32') msgType: number,
     @ParamType('pointer', 'Utf16String') contactId: string,
     @ParamType('pointer', 'Utf16String') text: string,
-  ) { return Ret(contactId, text) }
+    @ParamType('pointer', 'Utf16String') groupMsgSenderId: string,
+    @ParamType('pointer', 'Utf16String') xmlContent: string,
+    @ParamType('int32', 'U32') isMyMsg: number, // add isMyMsg type
+  ) { return Ret(msgType, contactId, text, groupMsgSenderId, xmlContent, isMyMsg) }
 
 }
 
